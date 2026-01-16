@@ -11,13 +11,12 @@ library(ggplot2)
 
 # Load dataset
 Hy <- read.csv("Hyperspectral Reflectance.csv", check.names = FALSE)
-names(Hy)
+#names(Hy)
 
 # Compute mean reflectance per site (averaging across quadrats)
 mean_reflectance_per_site <- Hy %>%
   group_by(Site) %>%
   summarise(across(where(is.numeric), mean, na.rm = TRUE))
-
 
 #Note: I have to delete some of the bands because they contain noise. Check Irini and Yihan's paper. They talked about it.
 # Define the wavelength ranges to be set as NA
@@ -28,7 +27,6 @@ mean_reflectance_per_site[, as.character(wavelength_na_ranges)] <- NA
 # Add a new column 'Species' based on the first letter of 'Site'
 mean_reflectance_per_site <- mean_reflectance_per_site %>%
   mutate(Species = ifelse(grepl("^C", Site), "CW", "NG"))
-
 
 # Convert data to long format for plotting
 long_data <- mean_reflectance_per_site %>%
@@ -2552,10 +2550,6 @@ SATVI_results <- SATVI <- data.frame(
 #Export the file
 #write.table(SATVI_results, "C:/Users/mta401/OneDrive - University of Saskatchewan/MY Desktop/USASK Msc Thesis Files/Thesis DataSets/Analysis/HyperSpectral/SImulation/Sentinel/SATVI_results.csv", sep = ",", row.names = FALSE)
 
-
-
-
-
 ######################################################
 ######### Combine all these spectral indices datasets
 ######################################################
@@ -2775,7 +2769,6 @@ r2_values <- data %>%
     r_squared = r2(lm(Height ~ SWVI))$R2
   )
 r2_values
-
 
 #*14* Height VS DWSI1660_550 with species interaction
 modelHeightDWSI1660_550 <- lm(Height ~ DWSI1660_550 * Species, data = data)
@@ -4699,3 +4692,4 @@ combined <-
   )
 
 combined
+
