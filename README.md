@@ -1,4 +1,4 @@
-# Detecting-Crested-Wheatgrass-Using-Remote-Sensing
+# Separating Crested Wheatgrass using field hyperspectral data in the Native Prairie of Southwestern Saskatchewan
 
 This repository will contain code from the second chapter.
 
