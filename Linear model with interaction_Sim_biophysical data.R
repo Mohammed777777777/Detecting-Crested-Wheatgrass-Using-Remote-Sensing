@@ -6,7 +6,6 @@ library(pracma)
 #setwd("C:/Users/mta401/OneDrive - University of Saskatchewan/MY Desktop/USASK Msc Thesis Files/Thesis DataSets")
 setwd("C:/Users/Mohammed/OneDrive - University of Saskatchewan/MY Desktop/USASK Msc Thesis Files/Thesis DataSets")
 
-
 # Load dataset
 Hy <- read.csv("Hyperspectral Reflectance.csv", check.names = FALSE)
 
@@ -14,7 +13,6 @@ Hy <- read.csv("Hyperspectral Reflectance.csv", check.names = FALSE)
 mean_reflectance_per_site <- Hy %>%
   group_by(Site) %>%
   summarise(across(where(is.numeric), mean, na.rm = TRUE))
-
 
 #Note: I have to delete some of the bands because they contain noise. Check Irini and Yihan's paper. They talked about it.
 # Define the wavelength ranges to be set as NA
@@ -511,7 +509,6 @@ summary_data <- tidy_data %>%
     .groups = 'drop'
   )
 
-
  Plot_S2<- ggplot(summary_data, aes(x = Band, y = mean_reflectance, 
                          group = Species, color = Species)) +
   geom_line(size = 1) +
@@ -602,7 +599,6 @@ variance_results <- tidy_data %>%
 variance_results
 #Note: sepctral data appears to be abnormal but I can make it normal based on the logic
 # from Irini's work. And, the variances might be unequal. So, I will end up with the Weltch T test like Irini.
-
 
 #*****************Sentinel done********************#
 
@@ -857,7 +853,6 @@ Planet_refl_b7 <- fieldspec_interp_b7_RE %>%
 Planet_refl_b7<- Planet_refl_b7 %>% 
   select(-numerator, -denominator)
 
-
 #Band 8 (NIR)
 srf_NIR <- PS %>% 
   select(Wavelength,  NIR) %>% 
@@ -1022,837 +1017,6 @@ variance_results
 
 #*****************PlanetScope done********************#
 
-
-##**********************Landsat 8_OLI_SRF_extraction*****************************##
-#setwd("D:/Usask/OneDrive - University of Saskatchewan/MY Desktop/USASK Msc Thesis Files/Thesis DataSets/Analysis/HyperSpectral/SImulation/Landsat 8")
-setwd("C:/Users/mta401/OneDrive - University of Saskatchewan/MY Desktop/USASK Msc Thesis Files/Thesis DataSets/Analysis/HyperSpectral/SImulation/Landsat 8")
-
-L8 <- read.csv("LandSat-8.csv", check.names = FALSE)
-#View(L8)
-names(L8)
-
-# Band 1 (Coastal Aerosol)
-srf_CA <- L8 %>% 
-  select(Wavelength,  CoastalAerosol) %>% 
-  rename(wavelength = Wavelength, weight = CoastalAerosol) %>% 
-  filter(weight > 0)  # Remove zero-weight wavelengths
-srf_CA
-
-fieldspec_interp_b1_CA <- fieldspec_long %>% 
-  group_by(Site) %>% 
-  reframe(
-    wavelength = srf_CA$wavelength,  # Use SRF wavelengths
-    reflectance = approx(
-      x = Wavelength, 
-      y = Reflectance, 
-      xout = srf_CA$wavelength, 
-      #rule = 2  # Extrapolate if needed
-    )$y
-  ) %>% 
-  left_join(srf_CA, by = "wavelength")  # Add SRF weights
-
-#View(fieldspec_interp_b1_CA)
-
-# Simulated Band 1 (Coastal Aerorsol)
-L8_refl_b1 <- fieldspec_interp_b1_CA %>% 
-  group_by(Site) %>% 
-  summarise(
-    numerator = trapz(wavelength, reflectance * weight),
-    denominator = trapz(wavelength, weight),
-    B1 = numerator / denominator,
-    #sentinel_scaled = sentinel_refl * 10000  # Scale for L2A products
-  )
-L8_refl_b1<- L8_refl_b1 %>% 
-  select(-numerator, -denominator)
-
-
-# Band 2 (Blue)
-srf_b <- L8 %>% 
-  select(Wavelength,  Blue) %>% 
-  rename(wavelength = Wavelength, weight = Blue) %>% 
-  filter(weight > 0)  # Remove zero-weight wavelengths
-srf_b
-
-fieldspec_interp_b2_b <- fieldspec_long %>% 
-  group_by(Site) %>% 
-  reframe(
-    wavelength = srf_b$wavelength,  # Use SRF wavelengths
-    reflectance = approx(
-      x = Wavelength, 
-      y = Reflectance, 
-      xout = srf_b$wavelength, 
-      #rule = 2  # Extrapolate if needed
-    )$y
-  ) %>% 
-  left_join(srf_b, by = "wavelength")  # Add SRF weights
-
-#View(fieldspec_interp_b2_b)
-
-# Simulated Band 2 (Blue)
-L8_refl_b2 <- fieldspec_interp_b2_b %>% 
-  group_by(Site) %>% 
-  summarise(
-    numerator = trapz(wavelength, reflectance * weight),
-    denominator = trapz(wavelength, weight),
-    B2 = numerator / denominator,
-    #sentinel_scaled = sentinel_refl * 10000  # Scale for L2A products
-  )
-L8_refl_b2<- L8_refl_b2 %>% 
-  select(-numerator, -denominator)
-
-#Band 3 (Green)
-srf_gi <- L8 %>% 
-  select(Wavelength,  Green) %>% 
-  rename(wavelength = Wavelength, weight = Green) %>% 
-  filter(weight > 0)  # Remove zero-weight wavelengths
-srf_gi
-
-fieldspec_interp_b3_gi <- fieldspec_long %>% 
-  group_by(Site) %>% 
-  reframe(
-    wavelength = srf_gi$wavelength,  # Use SRF wavelengths
-    reflectance = approx(
-      x = Wavelength, 
-      y = Reflectance, 
-      xout = srf_gi$wavelength, 
-      #rule = 2  # Extrapolate if needed
-    )$y
-  ) %>% 
-  left_join(srf_gi, by = "wavelength")  # Add SRF weights
-
-#View(fieldspec_interp_b3_gi)
-
-# Simulated Band 3 (Green)
-L8_refl_b3 <- fieldspec_interp_b3_gi %>% 
-  group_by(Site) %>% 
-  summarise(
-    numerator = trapz(wavelength, reflectance * weight),
-    denominator = trapz(wavelength, weight),
-    B3 = numerator / denominator,
-    #sentinel_scaled = sentinel_refl * 10000  # Scale for L2A products
-  )
-L8_refl_b3<- L8_refl_b3 %>% 
-  select(-numerator, -denominator)
-
-
-#Band 4 (Red)
-srf_Red <- L8 %>% 
-  select(Wavelength,  Red) %>% 
-  rename(wavelength = Wavelength, weight = Red) %>% 
-  filter(weight > 0)  # Remove zero-weight wavelengths
-srf_Red
-
-fieldspec_interp_b4_Red <- fieldspec_long %>% 
-  group_by(Site) %>% 
-  reframe(
-    wavelength = srf_Red$wavelength,  # Use SRF wavelengths
-    reflectance = approx(
-      x = Wavelength, 
-      y = Reflectance, 
-      xout = srf_Red$wavelength, 
-      #rule = 2  # Extrapolate if needed
-    )$y
-  ) %>% 
-  left_join(srf_Red, by = "wavelength")  # Add SRF weights
-
-#View(fieldspec_interp_b4_Red)
-
-# Simulated Band 4 (Red)
-L8_refl_b4 <- fieldspec_interp_b4_Red %>% 
-  group_by(Site) %>% 
-  summarise(
-    numerator = trapz(wavelength, reflectance * weight),
-    denominator = trapz(wavelength, weight),
-    B4 = numerator / denominator,
-    #sentinel_scaled = sentinel_refl * 10000  # Scale for L2A products
-  )
-L8_refl_b4<- L8_refl_b4 %>% 
-  select(-numerator, -denominator)
-
-#Band 5 (NIR)
-srf_NIR <- L8 %>% 
-  select(Wavelength,  NIR) %>% 
-  rename(wavelength = Wavelength, weight = NIR) %>% 
-  filter(weight > 0)  # Remove zero-weight wavelengths
-srf_NIR
-
-fieldspec_interp_b5_NIR <- fieldspec_long %>% 
-  group_by(Site) %>% 
-  reframe(
-    wavelength = srf_NIR$wavelength,  # Use SRF wavelengths
-    reflectance = approx(
-      x = Wavelength, 
-      y = Reflectance, 
-      xout = srf_NIR$wavelength, 
-      #rule = 2  # Extrapolate if needed
-    )$y
-  ) %>% 
-  left_join(srf_NIR, by = "wavelength")  # Add SRF weights
-
-#View(fieldspec_interp_b5_NIR)
-
-# Simulated Band 5 (NIR)
-L8_refl_b5 <- fieldspec_interp_b5_NIR %>% 
-  group_by(Site) %>% 
-  summarise(
-    numerator = trapz(wavelength, reflectance * weight),
-    denominator = trapz(wavelength, weight),
-    B5 = numerator / denominator,
-    #sentinel_scaled = sentinel_refl * 10000  # Scale for L2A products
-  )
-L8_refl_b5<- L8_refl_b5 %>% 
-  select(-numerator, -denominator)
-
-
-#Band 6 (SWIR1)
-srf_SWIR1 <- L8 %>% 
-  select(Wavelength,  SWIR1) %>% 
-  rename(wavelength = Wavelength, weight = SWIR1) %>% 
-  filter(weight > 0)  # Remove zero-weight wavelengths
-srf_SWIR1
-
-fieldspec_interp_b6_SWIR1 <- fieldspec_long %>% 
-  group_by(Site) %>% 
-  reframe(
-    wavelength = srf_SWIR1$wavelength,  # Use SRF wavelengths
-    reflectance = approx(
-      x = Wavelength, 
-      y = Reflectance, 
-      xout = srf_SWIR1$wavelength, 
-      #rule = 2  # Extrapolate if needed
-    )$y
-  ) %>% 
-  left_join(srf_SWIR1, by = "wavelength")  # Add SRF weights
-
-#View(fieldspec_interp_b6_SWIR1)
-
-# Simulated Band 6 (SWIR1)
-L8_SWIR1efl_b6 <- fieldspec_interp_b6_SWIR1 %>% 
-  group_by(Site) %>% 
-  summarise(
-    numerator = trapz(wavelength, reflectance * weight),
-    denominator = trapz(wavelength, weight),
-    B6 = numerator / denominator,
-    #sentinel_scaled = sentinel_SWIR1efl * 10000  # Scale for L2A products
-  )
-L8_SWIR1efl_b6<- L8_SWIR1efl_b6 %>% 
-  select(-numerator, -denominator)
-
-
-#Band 7 (SWIR2)
-srf_SWIR2 <- L8 %>% 
-  select(Wavelength,  SWIR2) %>% 
-  rename(wavelength = Wavelength, weight = SWIR2) %>% 
-  filter(weight > 0)  # Remove zero-weight wavelengths
-srf_SWIR2
-
-fieldspec_interp_b7_SWIR2 <- fieldspec_long %>% 
-  group_by(Site) %>% 
-  reframe(
-    wavelength = srf_SWIR2$wavelength,  # Use SRF wavelengths
-    reflectance = approx(
-      x = Wavelength, 
-      y = Reflectance, 
-      xout = srf_SWIR2$wavelength, 
-      rule = 2  # Extrapolate if needed
-    )$y
-  ) %>% 
-  left_join(srf_SWIR2, by = "wavelength")  # Add SRF weights
-#View(fieldspec_interp_b7_SWIR2)
-
-# Simulated Band 7 (SWIR2)
-L8_SWIR2fl_b7 <- fieldspec_interp_b7_SWIR2 %>% 
-  group_by(Site) %>% 
-  summarise(
-    numerator = trapz(wavelength, reflectance * weight),
-    denominator = trapz(wavelength, weight),
-    B7 = numerator / denominator,
-    #sentinel_scaled = sentinel_SWIR2fl * 10000  # Scale for L2A products
-  )
-L8_SWIR2fl_b7<- L8_SWIR2fl_b7 %>% 
-  select(-numerator, -denominator)
-
-
-#Band 8 (Pan)
-srf_Pan <- L8 %>% 
-  select(Wavelength,  Pan) %>% 
-  rename(wavelength = Wavelength, weight = Pan) %>% 
-  filter(weight > 0)  # Remove zero-weight wavelengths
-srf_Pan
-
-fieldspec_interp_b8_Pan <- fieldspec_long %>% 
-  group_by(Site) %>% 
-  reframe(
-    wavelength = srf_Pan$wavelength,  # Use SRF wavelengths
-    reflectance = approx(
-      x = Wavelength, 
-      y = Reflectance, 
-      xout = srf_Pan$wavelength, 
-      #rule = 2  # Extrapolate if needed
-    )$y
-  ) %>% 
-  left_join(srf_Pan, by = "wavelength")  # Add SRF weights
-#View(fieldspec_interp_b8_Pan)
-
-# Simulated Band 8 (Pan)
-L8_refl_b8 <- fieldspec_interp_b8_Pan %>% 
-  group_by(Site) %>% 
-  summarise(
-    numerator = trapz(wavelength, reflectance * weight),
-    denominator = trapz(wavelength, weight),
-    B8 = numerator / denominator,
-    #sentinel_scaled = sentinel_refl * 10000  # Scale for L2A products
-  )
-
-L8_refl_b8<- L8_refl_b8 %>% 
-  select(-numerator, -denominator)
-
-final_resultsL8 <- L8_refl_b1 %>%
-  full_join(L8_refl_b2, by = "Site") %>%
-  full_join(L8_refl_b3, by = "Site") %>%
-  full_join(L8_refl_b4, by = "Site") %>%
-  full_join(L8_refl_b5, by = "Site") %>%
-  full_join(L8_SWIR1efl_b6, by = "Site") %>%
-  full_join(L8_SWIR2fl_b7, by = "Site") %>%
-  full_join(L8_refl_b8, by = "Site")
-
-#View(final_resultsL8)
-names(final_resultsL8)
-
-# Add a new column 'Species' based on the first letter of 'Site'
-SimulatedL8 <- final_resultsL8  %>%
-  mutate(Species = ifelse(grepl("^C", Site), "CW", "NG"))
-#View(SimulatedL8)
-names(SimulatedL8)
-
-#***************visualization*********************#
-# First, create the tidy/long version of the data
-SimulatedL8_data <- SimulatedL8 %>%
-  pivot_longer(cols = B1:B8, names_to = "Band", values_to = "Reflectance") %>%
-  mutate(
-    Band = case_when(
-      is.na(Band) ~ "B8",  # Replace NA with B9 (if needed)
-      TRUE ~ Band           # Keep other bands as-is
-    ),
-    Band = factor(Band, levels = paste0("B", 1:8))  # Only include B1-B8
-  )
-SimulatedL8_data
-#View(SimulatedL8_data)
-
-# Calculate summary statistics by Band and Species
-summary_dataL8 <- SimulatedL8_data %>%
-  group_by(Band, Species) %>%
-  summarise(
-    mean_reflectance = mean(Reflectance),
-    sd_reflectance = sd(Reflectance),
-    .grouL8 = 'drop'
-  )
-
-plot_L8 <- ggplot(summary_dataL8, aes(x = Band, y = mean_reflectance, 
-                           group = Species, color = Species)) +
-  geom_line(size = 1) +
-  geom_point(size = 2) +
-  geom_errorbar(aes(ymin = mean_reflectance - sd_reflectance, 
-                    ymax = mean_reflectance + sd_reflectance),
-                width = 0.2) +
-  labs(title = "Simulated Landsat 8 OLI-1 Spectra",
-       x = "Band",
-       y = "Reflectance",
-       color = "Species") +
-  scale_color_manual(values = c("CW" = "blue", "NG" = "red")) +
-  scale_y_continuous(breaks = seq(0, max(summary_data$mean_reflectance) + 0.1, by = 0.05)) +  # Adjust 'by' as needed
-  theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 45, hjust = 1))+
-  scale_x_discrete(
-    labels = c("B1" = "Coastal Aerosol", 
-               "B2" = "Blue",
-               "B3" = "Green",
-               "B4" = "Red",
-               "B5" = "NIR",
-               "B6" = "SWIR1",
-               "B7" = "SWIR2",
-               "B8" = "Pan")  # Adjust to match your bands
-  )
-
-plot_L8
-
-#****************Extraction done***********************#
-#**************Assmption Testing**********************#
-library(plotly)
-library(ggpubr)  
-library(dplyr)
-
-#Normality Test
-D<-ggqqplot(
-  data = SimulatedL8_data, 
-  x = "Reflectance", 
-  facet.by = "Species",
-  title = "Q-Q Plot: Grass biomass (gm/m2)"
-)
-D
-
-p <- ggqqplot(
-  data = SimulatedL8_data,
-  x = "Reflectance",
-  facet.by = c("Species", "Band"),
-  title = "Interactive Q-Q Plot by Band_region",
-  color = "Band"
-)
-
-ggqqplot(
-  data = SimulatedL8_data,
-  x = "Reflectance",
-  facet.by = c("Species", "Band"),  # Facet by both Species AND Band
-  title = "Q-Q Plots: Reflectance Normality by Species and Spectral Band",
-  # Color points by band
-  palette = c("red", "darkgreen", "gray")  # Custom colors for bands
-) +
-  theme(legend.position = "top") 
-
-# Convert to interactive plot
-ggplotly(p, tooltip = c("x", "y", "Rand")) 
-
-# Split data by species
-split_data2 <- split(SimulatedL8_data$Reflectance,SimulatedL8_data$Species)
-#View(split_data2)
-
-# Run Shapiro-Wilk test for each species
-lapply(split_data2, shapiro.test)
-#Note: Looks like this is one of the limitation of shapiro test of normality.
-
-#Homogeniety test of variance
-library(car)
-leveneTest(Reflectance ~ Species, data = SimulatedL8_data)
-
-variance_results <- SimulatedL8_data %>%
-  group_by(Band) %>%
-  summarise(
-    levene_p = leveneTest(Reflectance ~ Species)$`Pr(>F)`[1],
-    .grouL8 = 'drop'
-  )
-variance_results
-#Note: Hypersepctral data appears to be abnormal but I can make it normal based on the logic
-# from Irini's work. And, the variances might be unequal. So, I will end up with the Weltch T test like Irini.
-
-#*****************Landsat 8 OLI-1 done*********************#
-
-
-##**********************Landsat 9_OLI-2_SRF_extraction*****************************##
-setwd("D:/Usask/OneDrive - University of Saskatchewan/MY Desktop/USASK Msc Thesis Files/Thesis DataSets/Analysis/HyperSpectral/SImulation/Landsat 9")
-#setwd("C:/Users/mta401/OneDrive - University of Saskatchewan/MY Desktop/USASK Msc Thesis Files/Thesis DataSets/Analysis/HyperSpectral/SImulation/Landsat 9")
-
-L9 <- read.csv("LandSat9.csv", check.names = FALSE)
-#View(L9)
-names(L9)
-
-# Band 1 (Coastal Aerosol)
-srf_CA_L9 <- L9 %>% 
-  select(Wavelength,  CoastalAerosol) %>% 
-  rename(wavelength = Wavelength, weight = CoastalAerosol) %>% 
-  filter(weight > 0)  # Remove zero-weight wavelengths
-srf_CA_L9
-
-fieldspec_interp_b1_CA_L9 <- fieldspec_long %>% 
-  group_by(Site) %>% 
-  reframe(
-    wavelength = srf_CA_L9$wavelength,  # Use SRF wavelengths
-    reflectance = approx(
-      x = Wavelength, 
-      y = Reflectance, 
-      xout = srf_CA_L9$wavelength, 
-      #rule = 2  # Extrapolate if needed
-    )$y
-  ) %>% 
-  left_join(srf_CA_L9, by = "wavelength")  # Add SRF weights
-
-#View(fieldspec_interp_b1_CA_L9)
-
-# Simulated Band 1 (Coastal Aerorsol)
-L9_refl_b1 <- fieldspec_interp_b1_CA_L9 %>% 
-  group_by(Site) %>% 
-  summarise(
-    numerator = trapz(wavelength, reflectance * weight),
-    denominator = trapz(wavelength, weight),
-    B1 = numerator / denominator,
-    #sentinel_scaled = sentinel_refl * 10000  # Scale for L2A products
-  )
-L9_refl_b1<- L9_refl_b1 %>% 
-  select(-numerator, -denominator)
-
-# Band 2 (Blue)
-srf_b_L9 <- L9 %>% 
-  select(Wavelength,  Blue) %>% 
-  rename(wavelength = Wavelength, weight = Blue) %>% 
-  filter(weight > 0)  # Remove zero-weight wavelengths
-srf_b_L9
-
-fieldspec_interp_b2_b_L9 <- fieldspec_long %>% 
-  group_by(Site) %>% 
-  reframe(
-    wavelength = srf_b_L9$wavelength,  # Use SRF wavelengths
-    reflectance = approx(
-      x = Wavelength, 
-      y = Reflectance, 
-      xout = srf_b_L9$wavelength, 
-      #rule = 2  # Extrapolate if needed
-    )$y
-  ) %>% 
-  left_join(srf_b_L9, by = "wavelength")  # Add SRF weights
-
-#View(fieldspec_interp_b2_b_L9)
-
-# Simulated Band 2 (Blue)
-L9_refl_b2 <- fieldspec_interp_b2_b_L9 %>% 
-  group_by(Site) %>% 
-  summarise(
-    numerator = trapz(wavelength, reflectance * weight),
-    denominator = trapz(wavelength, weight),
-    B2 = numerator / denominator,
-    #sentinel_scaled = sentinel_refl * 10000  # Scale for L2A products
-  )
-L9_refl_b2<- L9_refl_b2 %>% 
-  select(-numerator, -denominator)
-
-
-#Band 3 (Green)
-srf_gi_L9 <- L9 %>% 
-  select(Wavelength,  Green) %>% 
-  rename(wavelength = Wavelength, weight = Green) %>% 
-  filter(weight > 0)  # Remove zero-weight wavelengths
-srf_gi_L9
-
-fieldspec_interp_b3_gi_L9 <- fieldspec_long %>% 
-  group_by(Site) %>% 
-  reframe(
-    wavelength = srf_gi_L9$wavelength,  # Use SRF wavelengths
-    reflectance = approx(
-      x = Wavelength, 
-      y = Reflectance, 
-      xout = srf_gi_L9$wavelength, 
-      #rule = 2  # Extrapolate if needed
-    )$y
-  ) %>% 
-  left_join(srf_gi_L9, by = "wavelength")  # Add SRF weights
-
-#View(fieldspec_interp_b3_gi_L9)
-
-# Simulated Band 3 (Green)
-L9_refl_b3 <- fieldspec_interp_b3_gi_L9 %>% 
-  group_by(Site) %>% 
-  summarise(
-    numerator = trapz(wavelength, reflectance * weight),
-    denominator = trapz(wavelength, weight),
-    B3 = numerator / denominator,
-    #sentinel_scaled = sentinel_refl * 10000  # Scale for L2A products
-  )
-L9_refl_b3<- L9_refl_b3 %>% 
-  select(-numerator, -denominator)
-
-
-#Band 4 (Red)
-srf_Red_L9 <- L9 %>% 
-  select(Wavelength,  Red) %>% 
-  rename(wavelength = Wavelength, weight = Red) %>% 
-  filter(weight > 0)  # Remove zero-weight wavelengths
-srf_Red_L9
-
-fieldspec_interp_b4_Red_L9 <- fieldspec_long %>% 
-  group_by(Site) %>% 
-  reframe(
-    wavelength = srf_Red_L9$wavelength,  # Use SRF wavelengths
-    reflectance = approx(
-      x = Wavelength, 
-      y = Reflectance, 
-      xout = srf_Red_L9$wavelength, 
-      #rule = 2  # Extrapolate if needed
-    )$y
-  ) %>% 
-  left_join(srf_Red_L9, by = "wavelength")  # Add SRF weights
-
-#View(fieldspec_interp_b4_Red_L9)
-
-# Simulated Band 4 (Red)
-L9_refl_b4 <- fieldspec_interp_b4_Red_L9 %>% 
-  group_by(Site) %>% 
-  summarise(
-    numerator = trapz(wavelength, reflectance * weight),
-    denominator = trapz(wavelength, weight),
-    B4 = numerator / denominator,
-    #sentinel_scaled = sentinel_refl * 10000  # Scale for L2A products
-  )
-L9_refl_b4<- L9_refl_b4 %>% 
-  select(-numerator, -denominator)
-
-
-#Band 5 (NIR)
-srf_NIR_L9 <- L9 %>% 
-  select(Wavelength,  NIR) %>% 
-  rename(wavelength = Wavelength, weight = NIR) %>% 
-  filter(weight > 0)  # Remove zero-weight wavelengths
-srf_NIR_L9
-
-fieldspec_interp_b5_NIR_L9 <- fieldspec_long %>% 
-  group_by(Site) %>% 
-  reframe(
-    wavelength = srf_NIR_L9$wavelength,  # Use SRF wavelengths
-    reflectance = approx(
-      x = Wavelength, 
-      y = Reflectance, 
-      xout = srf_NIR_L9$wavelength, 
-      #rule = 2  # Extrapolate if needed
-    )$y
-  ) %>% 
-  left_join(srf_NIR_L9, by = "wavelength")  # Add SRF weights
-
-#View(fieldspec_interp_b5_NIR)
-
-# Simulated Band 5 (NIR)
-L9_refl_b5 <- fieldspec_interp_b5_NIR_L9 %>% 
-  group_by(Site) %>% 
-  summarise(
-    numerator = trapz(wavelength, reflectance * weight),
-    denominator = trapz(wavelength, weight),
-    B5 = numerator / denominator,
-    #sentinel_scaled = sentinel_refl * 10000  # Scale for L2A products
-  )
-L9_refl_b5<- L9_refl_b5 %>% 
-  select(-numerator, -denominator)
-
-
-#Band 6 (SWIR1)
-srf_SWIR1_L9 <- L9 %>% 
-  select(Wavelength,  SWIR1) %>% 
-  rename(wavelength = Wavelength, weight = SWIR1) %>% 
-  filter(weight > 0)  # Remove zero-weight wavelengths
-srf_SWIR1_L9
-
-fieldspec_interp_b6_SWIR1_L9 <- fieldspec_long %>% 
-  group_by(Site) %>% 
-  reframe(
-    wavelength = srf_SWIR1_L9$wavelength,  # Use SRF wavelengths
-    reflectance = approx(
-      x = Wavelength, 
-      y = Reflectance, 
-      xout = srf_SWIR1_L9$wavelength, 
-      #rule = 2  # Extrapolate if needed
-    )$y
-  ) %>% 
-  left_join(srf_SWIR1_L9, by = "wavelength")  # Add SRF weights
-
-#View(fieldspec_interp_b6_SWIR1_L9)
-
-# Simulated Band 6 (SWIR1)
-L9_SWIR1efl_b6 <- fieldspec_interp_b6_SWIR1_L9 %>% 
-  group_by(Site) %>% 
-  summarise(
-    numerator = trapz(wavelength, reflectance * weight),
-    denominator = trapz(wavelength, weight),
-    B6 = numerator / denominator,
-    #sentinel_scaled = sentinel_SWIR1efl * 10000  # Scale for L2A products
-  )
-L9_SWIR1efl_b6<- L9_SWIR1efl_b6 %>% 
-  select(-numerator, -denominator)
-
-
-#Band 7 (SWIR2)
-srf_SWIR2_L9 <- L9 %>% 
-  select(Wavelength,  SWIR2) %>% 
-  rename(wavelength = Wavelength, weight = SWIR2) %>% 
-  filter(weight > 0)  # Remove zero-weight wavelengths
-srf_SWIR2_L9
-
-fieldspec_interp_b7_SWIR2_L9 <- fieldspec_long %>% 
-  group_by(Site) %>% 
-  reframe(
-    wavelength = srf_SWIR2_L9$wavelength,  # Use SRF wavelengths
-    reflectance = approx(
-      x = Wavelength, 
-      y = Reflectance, 
-      xout = srf_SWIR2_L9$wavelength, 
-      rule = 2  # Extrapolate if needed
-    )$y
-  ) %>% 
-  left_join(srf_SWIR2_L9, by = "wavelength")  # Add SRF weights
-#View(fieldspec_interp_b7_SWIR2_L9)
-
-# Simulated Band 7 (SWIR2)
-L9_SWIR2fl_b7 <- fieldspec_interp_b7_SWIR2_L9 %>% 
-  group_by(Site) %>% 
-  summarise(
-    numerator = trapz(wavelength, reflectance * weight),
-    denominator = trapz(wavelength, weight),
-    B7 = numerator / denominator,
-    #sentinel_scaled = sentinel_SWIR2fl * 10000  # Scale for L2A products
-  )
-L9_SWIR2fl_b7<- L9_SWIR2fl_b7 %>% 
-  select(-numerator, -denominator)
-
-
-#Band 8 (Pan)
-srf_Pan_L9 <- L9 %>% 
-  select(Wavelength,  Pan) %>% 
-  rename(wavelength = Wavelength, weight = Pan) %>% 
-  filter(weight > 0)  # Remove zero-weight wavelengths
-srf_Pan_L9
-
-fieldspec_interp_b8_Pan_L9 <- fieldspec_long %>% 
-  group_by(Site) %>% 
-  reframe(
-    wavelength = srf_Pan_L9$wavelength,  # Use SRF wavelengths
-    reflectance = approx(
-      x = Wavelength, 
-      y = Reflectance, 
-      xout = srf_Pan_L9$wavelength, 
-      #rule = 2  # Extrapolate if needed
-    )$y
-  ) %>% 
-  left_join(srf_Pan_L9, by = "wavelength")  # Add SRF weights
-#View(fieldspec_interp_b8_Pan_L9)
-
-# Simulated Band 8 (Pan)
-L9_refl_b8 <- fieldspec_interp_b8_Pan_L9 %>% 
-  group_by(Site) %>% 
-  summarise(
-    numerator = trapz(wavelength, reflectance * weight),
-    denominator = trapz(wavelength, weight),
-    B8 = numerator / denominator,
-    #sentinel_scaled = sentinel_refl * 10000  # Scale for L2A products
-  )
-
-L9_refl_b8<- L9_refl_b8 %>% 
-  select(-numerator, -denominator)
-
-final_resultsL9 <- L9_refl_b1 %>%
-  full_join(L9_refl_b2, by = "Site") %>%
-  full_join(L9_refl_b3, by = "Site") %>%
-  full_join(L9_refl_b4, by = "Site") %>%
-  full_join(L9_refl_b5, by = "Site") %>%
-  full_join(L9_SWIR1efl_b6, by = "Site") %>%
-  full_join(L9_SWIR2fl_b7, by = "Site") %>%
-  full_join(L9_refl_b8, by = "Site")
-
-#View(final_resultsL9)
-names(final_resultsL9)
-
-# Add a new column 'Species' based on the first letter of 'Site'
-SimulatedL9 <- final_resultsL9  %>%
-  mutate(Species = ifelse(grepl("^C", Site), "CW", "NG"))
-#View(SimulatedL9)
-names(SimulatedL9)
-
-
-#***************visualization*********************#
-# First, create the tidy/long version of the data
-SimulatedL9_data <- SimulatedL9 %>%
-  pivot_longer(cols = B1:B8, names_to = "Band", values_to = "Reflectance") %>%
-  mutate(
-    Band = case_when(
-      is.na(Band) ~ "B8",  # Replace NA with B9 (if needed)
-      TRUE ~ Band           # Keep other bands as-is
-    ),
-    Band = factor(Band, levels = paste0("B", 1:8))  # Only include B1-B8
-  )
-SimulatedL9_data
-#View(SimulatedL9_data)
-
-# Calculate summary statistics by Band and Species
-summary_dataL9 <- SimulatedL9_data %>%
-  group_by(Band, Species) %>%
-  summarise(
-    mean_reflectance = mean(Reflectance),
-    sd_reflectance = sd(Reflectance),
-    .grouL9 = 'drop'
-  )
-
-plot_L9 <- ggplot(summary_dataL9, aes(x = Band, y = mean_reflectance, 
-                           group = Species, color = Species)) +
-  geom_line(size = 1) +
-  geom_point(size = 2) +
-  geom_errorbar(aes(ymin = mean_reflectance - sd_reflectance, 
-                    ymax = mean_reflectance + sd_reflectance),
-                width = 0.2) +
-  labs(title = "Simulated Landsat 9 OLI-2 Reflectance",
-       x = "Band",
-       y = "Reflectance",
-       color = "Species") +
-  scale_color_manual(values = c("CW" = "blue", "NG" = "red")) +
-  scale_y_continuous(breaks = seq(0, max(summary_data$mean_reflectance) + 0.1, by = 0.05)) +  # Adjust 'by' as needed
-  theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 45, hjust = 1))+
-  scale_x_discrete(
-    labels = c("B1" = "Coastal Aerorsol", 
-               "B2" = "Blue",
-               "B3" = "Green",
-               "B4" = "Red",
-               "B5" = "NIR",
-               "B6" = "SWIR1",
-               "B7" = "SWIR2",
-               "B8" = "Pan")  # Adjust to match your bands
-  )
-plot_L9
-
-#****************Extraction done***********************#
-#**************Assmption Testing**********************#
-library(plotly)
-library(ggpubr)  
-library(dplyr)
-
-#Normality Test
-D<-ggqqplot(
-  data = SimulatedL9_data, 
-  x = "Reflectance", 
-  facet.by = "Species",
-  title = "Q-Q Plot: Grass biomass (gm/m2)"
-)
-D
-
-p <- ggqqplot(
-  data = SimulatedL9_data,
-  x = "Reflectance",
-  facet.by = c("Species", "Band"),
-  title = "Interactive Q-Q Plot by Band_region",
-  color = "Band"
-)
-
-ggqqplot(
-  data = SimulatedL9_data,
-  x = "Reflectance",
-  facet.by = c("Species", "Band"),  # Facet by both Species AND Band
-  title = "Q-Q Plots: Reflectance Normality by Species and Spectral Band",
-  # Color points by band
-  palette = c("red", "darkgreen", "gray")  # Custom colors for bands
-) +
-  theme(legend.position = "top") 
-
-# Convert to interactive plot
-ggplotly(p, tooltip = c("x", "y", "Rand")) 
-
-# Split data by species
-split_data2 <- split(SimulatedL9_data$Reflectance,SimulatedL9_data$Species)
-#View(split_data2)
-
-# Run Shapiro-Wilk test for each species
-lapply(split_data2, shapiro.test)
-#Note: Looks like this is one of the limitation of shapiro test of normality.
-
-#Homogeniety test of variance
-library(car)
-leveneTest(Reflectance ~ Species, data = SimulatedL9_data)
-
-variance_results <- SimulatedL9_data %>%
-  group_by(Band) %>%
-  summarise(
-    levene_p = leveneTest(Reflectance ~ Species)$`Pr(>F)`[1],
-    .grouL9 = 'drop'
-  )
-variance_results
-#Note: Hypersepctral data appears to be abnormal but I can make it normal based on the logic
-# from Irini's work. And, the variances might be unequal. So, I will end up with the Weltch T test like Irini.
-
-#*****************Landsat 9 OLI-2 done*********************#
-
 #************Combine the data****************#
 library(patchwork)
 library(ggplot2)
@@ -1898,8 +1062,6 @@ band_labels_PS <-  c("B1" = "Coastal Blue",
                      "B7" = "Red Edge",
                      "B8" = "NIR")
 
-
-
 all_data <- all_data %>%
   mutate(
     Sensor = factor(Sensor, levels = c("PlanetScope","Sentinel-2")),
@@ -1919,7 +1081,6 @@ highlight_bands <- data.frame(
   ymin = -Inf,
   ymax = Inf
 )
-
 
 #2
 ggplot(all_data, aes(x = Band_Name, y = mean_reflectance, 
@@ -1955,7 +1116,6 @@ ggplot(all_data, aes(x = Band_Name, y = mean_reflectance,
     axis.title.y = element_text(size = 12),
     axis.title.x = element_text(size = 12)
   )
-
 
 highlight_bands <- data.frame(
   Sensor = c("PlanetScope", "PlanetScope","PlanetScope","PlanetScope","PlanetScope","PlanetScope", "Sentinel-2","Sentinel-2", "Sentinel-2","Sentinel-2", "Sentinel-2","Sentinel-2"),
@@ -2009,7 +1169,6 @@ ggplot(all_data, aes(x = Band_Name, y = mean_reflectance,
     strip.text = element_text(size = 20) 
   )
 
-
 #2
 ggplot(all_data, aes(x = Band, y = mean_reflectance, 
                      group = Species, color = Species)) +
@@ -2019,7 +1178,6 @@ ggplot(all_data, aes(x = Band, y = mean_reflectance,
                     ymax = mean_reflectance + sd_reflectance),
                 width = 0.2) +
   facet_wrap(~Sensor, ncol = 1, scales = "free_x")
-
 
 #################################################################
 #***********************Done the Visualization******************#
@@ -2048,23 +1206,6 @@ weltch_t_test_results_SimulatedSentinel2A <- tidy_data %>%
 #View(weltch_t_test_results_SimulatedSentinel2A)
 
 #write.table(weltch_t_test_results_SimulatedSentinel2A, "C:/Users/mta401/OneDrive - University of Saskatchewan/MY Desktop/USASK Msc Thesis Files/Thesis DataSets/Analysis/HyperSpectral/SImulation/Sentinel/Simulated Sentinel WeltchTtest.csv", sep = ",", row.names = FALSE)
-
-#*****SimulatedL8_data Weltch t test**********
-weltch_t_test_results_SimulatedL8_data <- SimulatedL8_data %>%
-  group_by(Band) %>%
-  summarize(p_value_WEL = t.test(Reflectance ~ Species, var.equal = FALSE)$p.value)
-#View(weltch_t_test_results_SimulatedL8_data)
-
-#write.table(weltch_t_test_results_SimulatedL8_data, "C:/Users/mta401/OneDrive - University of Saskatchewan/MY Desktop/USASK Msc Thesis Files/Thesis DataSets/Analysis/HyperSpectral/SImulation/Sentinel/Simulated Landsat8 WeltchTtest.csv", sep = ",", row.names = FALSE)
-
-#*****SimulatedL9_data Weltch t test**********
-weltch_t_test_results_SimulatedL9_data <- SimulatedL9_data %>%
-  group_by(Band) %>%
-  summarize(p_value_WEL = t.test(Reflectance ~ Species, var.equal = FALSE)$p.value)
-#View(weltch_t_test_results_SimulatedL9_data)
-
-#write.table(weltch_t_test_results_SimulatedL9_data, "C:/Users/mta401/OneDrive - University of Saskatchewan/MY Desktop/USASK Msc Thesis Files/Thesis DataSets/Analysis/HyperSpectral/SImulation/Sentinel/Simulated Landsat9 WeltchTtest.csv", sep = ",", row.names = FALSE)
-
 
 #######################################################################
 #*******************Spectral index calulation*************************#
@@ -2797,7 +1938,6 @@ WSI_S2_results <- WSI <- data.frame(
 
 #Export the file
 #write.table(WSI_S2_results, "C:/Users/mta401/OneDrive - University of Saskatchewan/MY Desktop/USASK Msc Thesis Files/Thesis DataSets/Analysis/HyperSpectral/SImulation/Sentinel/WSI_S2_results.csv", sep = ",", row.names = FALSE)
-
 
 #*****************************************************************************************************#
 #6 Normalized differencesenescent vegetation index (NDSVI) (B11-B4) Qi, J., R. Marsett, P. Heilman, S. Bieden-Bender, 
@@ -4179,8 +3319,6 @@ OS2<-OS2+ annotate("text",
                    color = "black", 
                    size = 5)
 OS2
-
-
 
 #**********************************************************************#
 #**********************************************************************#
@@ -5881,6 +5019,7 @@ combinedPS <-
   )
 
 combinedPS
+
 
 
 
